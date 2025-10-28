@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taylor's Culinary Compass</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind to use 'Inter' font -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          }
+        }
+      }
+    </script>
+    <!-- Load React and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Lucide Icons is used via a simple component for demonstration -->
+    <!-- You can find Lucide icons source code at https://lucide.dev/ -->
+</head>
+<body class="bg-gray-100 font-sans">
+    <div id="root">
+        <!-- React component will be rendered here -->
+    </div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+        
+        // Inline definitions for Lucide Icons used in the app
+        const Clock = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>;
+        const Sun = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>;
+        const Flame = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3l.86-1.39A7 7 0 0 0 12 16.5a2 2 0 0 1-1.5 2 2 2 0 0 0-2 2"></path><path d="M17 11c0 1.5-1 2-1 2-1 1-2 2-2 4l-.5 2"></path></svg>;
+        const Utensils = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15v6"></path><path d="M19 21v-4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v4"></path></svg>;
+        const Heart = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.5 4.04 3 5.5l7 7Z"></path></svg>;
+        const Leaf = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 20A7 7 0 0 1 9.87 6.12c2.76-2.76 5.52-1.68 8.13.91 1.76 1.76 1.76 4.71 0 6.46-2.5 2.5-5.26 1.42-8.13-.91Z"></path><path d="M14 6c1.67 0 3.5 1.7 5 3"></path><path d="M15 15c-1.67 0-3.5-1.7-5-3"></path></svg>;
+        const Drumstick = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.5 9.5a2.5 2.5 0 0 1-5 0v-4l-3-2V2.5l5 2V8l3-2V4.5l5 2V12l-3-2Z"></path><path d="M22 17c0 3-4 4-8 4s-8-1-8-4 4-4 8-4 8 1 8 4Z"></path></svg>;
+        const Sprout = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 20h10"></path><path d="M12 14v6"></path><path d="M10 10l-4 4"></path><path d="M14 10l4 4"></path><path d="M7 4c0-2 4-2 4 0s-4 6-4 6z"></path><path d="M17 4c0-2-4-2-4 0s4 6 4 6z"></path></svg>;
+        const Soup = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21a9 9 0 0 0 9-9V3H3v9a9 9 0 0 0 9 9Z"></path><path d="M8 8h8"></path><path d="M8 4h8"></path></svg>;
+        const ArrowRight = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>;
+        const RotateCcw = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v6h6"></path><path d="M21 12A9 9 0 0 0 6 5.3L3 8"></path><path d="M21 22v-6h-6"></path><path d="M3 12a9 9 0 0 0 15 6.7l3-3"></path></svg>;
+        const Home = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width={props.size || 24} height={props.size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
+        
+        // Define the steps and options for the decision tree
+        const decisionSteps = [
+          {
+            key: 'time',
+            title: "Step 1: How much time do you have?",
+            icon: Clock,
+            options: [
+              { id: 'quick', label: '15-20 min', icon: Sun, description: 'Super quick prep & cook.' },
+              { id: 'standard', label: '45 min', icon: Utensils, description: 'Standard weeknight meal.' },
+              { id: 'leisure', label: '90+ min', icon: Home, description: 'Weekend project or slow cook.' },
+            ],
+          },
+          {
+            key: 'mood',
+            title: "Step 2: What are you craving?",
+            icon: Heart,
+            options: [
+              { id: 'comfort', label: 'Comfort & Heavy', icon: Soup, description: 'Creamy, rich, and satisfying.' },
+              { id: 'fresh', label: 'Light & Fresh', icon: Leaf, description: 'Salads, quick sauté, bright flavors.' },
+              { id: 'bold', label: 'Bold & Spicy', icon: Flame, description: 'International flavors, heat, and zest.' },
+            ],
+          },
+          {
+            key: 'ingredient',
+            title: "Step 3: What's the main ingredient?",
+            icon: Drumstick,
+            options: [
+              { id: 'meat', label: 'Meat / Fish', icon: Drumstick, description: 'Focus on a main protein.' },
+              { id: 'veggie', label: 'Veggies Only', icon: Sprout, description: 'A plant-based dish.' },
+              { id: 'pantry', label: 'Pasta / Grains', icon: Soup, description: 'Using staples like rice, noodles, or pasta.' },
+            ],
+          },
+        ];
+
+        // Define suggestions based on combinations (simplified logic for demo)
+        const getSuggestion = (selections) => {
+          const { time, mood, ingredient } = selections;
+
+          // Base suggestions (Time is the primary filter)
+          let baseIdea = '';
+          let cuisine = '';
+          let action = '';
+
+          if (time === 'quick') {
+            baseIdea = 'A lightning-fast meal.';
+            action = 'Focus on high-heat cooking or assembly.';
+            if (ingredient === 'meat') cuisine = 'Quick Tacos, or high-heat seared fish.';
+            if (ingredient === 'veggie') cuisine = 'Gourmet Toast or simple stir-fry (like fried rice).';
+            if (ingredient === 'pantry') cuisine = '15-Minute Pasta Aglio e Olio or dressed-up instant noodles.';
+          } else if (time === 'standard') {
+            baseIdea = 'A satisfying weeknight dinner.';
+            action = 'Plenty of time for chopping and pan-searing.';
+            if (ingredient === 'meat') cuisine = 'Pan-Seared Chicken/Steak with roasted veggies.';
+            if (ingredient === 'veggie') cuisine = 'Lentil Soup or quick vegetable curry.';
+            if (ingredient === 'pantry') cuisine = 'Baked Pasta Casserole or complex grain bowls.';
+          } else if (time === 'leisure') {
+            baseIdea = 'A meal meant for savoring.';
+            action = 'This is your time for roasting, slow-cooking, or baking.';
+            if (ingredient === 'meat') cuisine = 'Full Roast Chicken or a large batch Chili/Stew.';
+            if (ingredient === 'veggie') cuisine = 'Homemade Pizza with vegetable toppings.';
+            if (ingredient === 'pantry') cuisine = 'Fresh Homemade Pasta or artisan bread.';
+          }
+
+          // Refine by Mood
+          let finalSuggestion = {
+            title: 'Your Culinary Compass Points To...',
+            description: baseIdea,
+            cuisine: cuisine,
+            moodRefinement: '',
+            action: action,
+          };
+
+          if (mood === 'comfort') {
+            finalSuggestion.moodRefinement = 'Make it rich, creamy, and decadent.';
+            finalSuggestion.title = 'It\'s Comfort Food Time!';
+          } else if (mood === 'fresh') {
+            finalSuggestion.moodRefinement = 'Keep it simple, vibrant, and clean.';
+            finalSuggestion.title = 'Keep it Light & Fresh!';
+          } else if (mood === 'bold') {
+            finalSuggestion.moodRefinement = 'Go wild with spices, heat, and zesty ingredients.';
+            finalSuggestion.title = 'Spice Up Your Evening!';
+          }
+
+          return finalSuggestion;
+        };
+
+        // --- Sub-Components ---
+
+        // Card Component for Step Options
+        const OptionCard = ({ option, onSelect, selected }) => {
+          const Icon = option.icon;
+          const isSelected = selected === option.id;
+
+          return (
+            <div
+              onClick={() => onSelect(option.id)}
+              className={`
+                flex flex-col items-center justify-center p-4 m-2 text-center rounded-xl transition-all duration-300 shadow-md cursor-pointer
+                ${isSelected
+                  ? 'bg-indigo-600 text-white shadow-lg transform scale-105 border-2 border-indigo-700'
+                  : 'bg-white text-gray-800 hover:bg-indigo-50 hover:shadow-lg border border-gray-200'
+                }
+                sm:w-full md:w-1/3 min-h-[160px]
+              `}
+            >
+              <Icon size={32} className="mb-2" />
+              <h3 className={`font-bold text-lg mb-1 ${isSelected ? 'text-white' : 'text-indigo-600'}`}>
+                {option.label}
+              </h3>
+              <p className={`text-sm ${isSelected ? 'text-indigo-100' : 'text-gray-500'} hidden sm:block`}>
+                {option.description}
+              </p>
+            </div>
+          );
+        };
+
+        // Result Display Component
+        const SuggestionDisplay = ({ suggestion, onReset }) => (
+          <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-2xl max-w-lg w-full">
+            <Utensils size={48} className="text-indigo-600 mb-4" />
+            <h1 className="text-3xl font-extrabold text-indigo-700 mb-2 text-center">
+              {suggestion.title}
+            </h1>
+            <p className="text-gray-600 mb-6 text-center">
+              {suggestion.description}
+            </p>
+
+            <div className="w-full space-y-4 mb-8">
+              <div className="p-4 bg-indigo-50 rounded-xl border-l-4 border-indigo-500">
+                <h2 className="font-semibold text-xl text-indigo-800 mb-1">Cuisine Idea</h2>
+                <p className="text-indigo-700">{suggestion.cuisine}</p>
+              </div>
+
+              <div className="p-4 bg-yellow-50 rounded-xl border-l-4 border-yellow-500">
+                <h2 className="font-semibold text-xl text-yellow-800 mb-1">Taylor's Vibe</h2>
+                <p className="text-yellow-700">{suggestion.moodRefinement}</p>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-xl border-l-4 border-green-500">
+                <h2 className="font-semibold text-xl text-green-800 mb-1">Action Plan</h2>
+                <p className="text-green-700">{suggestion.action}</p>
+              </div>
+            </div>
+
+            <button
+              onClick={onReset}
+              className="flex items-center justify-center px-6 py-3 bg-red-500 text-white font-semibold rounded-full hover:bg-red-600 transition-colors shadow-lg"
+            >
+              <RotateCcw size={18} className="mr-2" />
+              Start Over
+            </button>
+          </div>
+        );
+
+        // Main Application Component
+        const App = () => {
+          const [step, setStep] = useState(0); // 0: Time, 1: Mood, 2: Ingredient, 3: Result
+          const [selections, setSelections] = useState({
+            time: null,
+            mood: null,
+            ingredient: null,
+          });
+
+          const currentStepData = decisionSteps[step];
+          const totalSteps = decisionSteps.length;
+
+          // Handle selection of an option in the current step
+          const handleSelect = (key, value) => {
+            setSelections(prev => ({ ...prev, [key]: value }));
+
+            // Auto-advance to the next step
+            if (step < totalSteps - 1) {
+              setStep(step + 1);
+            } else {
+              // Last step, show result
+              setStep(totalSteps);
+            }
+          };
+
+          const handleReset = () => {
+            setStep(0);
+            setSelections({ time: null, mood: null, ingredient: null });
+          };
+
+          const handleBack = () => {
+            if (step > 0) {
+              // Clear the selection for the step being backed out of
+              const keyToClear = decisionSteps[step - 1].key;
+              setSelections(prev => ({ ...prev, [keyToClear]: null }));
+              setStep(step - 1);
+            }
+          };
+
+          const CurrentIcon = currentStepData ? currentStepData.icon : Utensils;
+
+          const suggestion = useMemo(() => {
+            if (step === totalSteps) {
+              return getSuggestion(selections);
+            }
+            return null;
+          }, [step, totalSteps, selections]);
+
+          return (
+            <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 sm:p-8 font-sans">
+              <header className="w-full max-w-3xl text-center mb-8">
+                <h1 className="text-4xl sm:text-5xl font-extrabold text-indigo-700">
+                  Taylor's Culinary Compass
+                </h1>
+                <p className="text-lg text-gray-500 mt-2">
+                  Let's find the perfect meal based on your constraints and cravings.
+                </p>
+              </header>
+
+              {/* Progress Bar */}
+              <div className="w-full max-w-3xl mb-8 bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-indigo-500 h-2.5 rounded-full transition-all duration-500"
+                  style={{ width: `${(step / totalSteps) * 100}%` }}
+                ></div>
+              </div>
+
+              {step < totalSteps ? (
+                // --- Step Views ---
+                <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-3xl flex flex-col items-center">
+                  <CurrentIcon size={40} className="text-indigo-600 mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    {currentStepData.title}
+                  </h2>
+
+                  <div className="flex flex-col md:flex-row justify-center gap-4 w-full">
+                    {currentStepData.options.map((option) => (
+                      <OptionCard
+                        key={option.id}
+                        option={option}
+                        onSelect={() => handleSelect(currentStepData.key, option.id)}
+                        selected={selections[currentStepData.key]}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="mt-8 flex justify-between w-full max-w-xs">
+                    {step > 0 && (
+                      <button
+                        onClick={handleBack}
+                        className="px-4 py-2 text-sm bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400 transition-colors flex items-center"
+                      >
+                        <ArrowRight size={16} className="rotate-180 mr-1" /> Back
+                      </button>
+                    )}
+                    <button
+                        onClick={handleReset}
+                        className="px-4 py-2 text-sm bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors ml-auto flex items-center"
+                    >
+                        <RotateCcw size={16} className="mr-1" /> Reset
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // --- Result View ---
+                <SuggestionDisplay suggestion={suggestion} onReset={handleReset} />
+              )}
+            </div>
+          );
+        };
+
+        // Render the App component into the root element
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
+
